@@ -36,93 +36,251 @@ PROBLEMS = {
     "note": {"title": "⚠️備註 (Remarks)", "title_zh": "補充說明", "desc": "【補充說明】\n以下題目也是期中考範圍 但是都在課本 無法提供測資\nChapter 11 Exercises 3-8 (page255-256)\nChapter 12 Projects 2 (page 275-276)\n\n有bug請回報IG : jiahedai  我醒啦 20251123 18:40編輯", "submit": False}
 }
 
+# ... (上面的 import 和 Flask 設定保持不變) ...
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌊 Seawaves Online Judge 🌊</title>
+    <title>Seawaves Online Judge</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
     <style>
+        /* 定義顏色變數 (預設淺色模式) */
         :root {
             --primary-color: #4a90e2;
+            --primary-hover: #357abd;
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
             --text-color: #333;
+            --text-secondary: #555;
+            --border-color: #e1e1e1;
+            --input-bg: #ffffff;
             --term-bg: #1e1e1e;
             --term-text: #00ff00;
             --desc-bg: #fffbe6;
             --desc-border: #ffe58f;
+            --desc-text: #444;
             --danger-color: #ff4d4f;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
+
+        /* 深色模式變數覆蓋 */
+        [data-theme="dark"] {
+            --primary-color: #64b5f6;
+            --primary-hover: #42a5f5;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+            --input-bg: #2d2d2d;
+            --term-bg: #000000;
+            --term-text: #00ff00; /* 終端機保持綠色 */
+            --desc-bg: #2a2a2a;
+            --desc-border: #444;
+            --desc-text: #cccccc;
+            --shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 40px 20px;
+            padding: 20px;
             color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
+
+        /* 頂部資訊列樣式 */
+        .info-bar {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .info-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .clock-icon, .timer-icon { margin-right: 5px; }
+
+        /* 主題切換按鈕 */
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .theme-toggle:hover {
+            border-color: var(--primary-color);
+            background-color: var(--input-bg);
+        }
+
         .container {
             background: var(--card-bg);
             width: 100%;
             max-width: 800px;
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
+
         h1 { text-align: center; color: var(--primary-color); margin-bottom: 30px; font-size: 2.2rem; }
         .form-group { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 1.1rem; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary); font-size: 1.1rem; }
         
-        select, input[type="text"] { width: 100%; padding: 14px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 18px; background-color: #fff; cursor: pointer; box-sizing: border-box;}
-        option { font-size: 18px; padding: 10px; }
+        select, input[type="text"], input[type="file"] { 
+            width: 100%; padding: 14px; 
+            border: 2px solid var(--border-color); 
+            border-radius: 8px; font-size: 16px; 
+            background-color: var(--input-bg); 
+            color: var(--text-color);
+            cursor: pointer; box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
         
-        input[type="file"] { width: 100%; padding: 12px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         select:focus, input:focus { border-color: var(--primary-color); outline: none; }
         
         button.submit-btn {
-            width: 100%; padding: 15px; background: linear-gradient(135deg, #4a90e2 0%, #007bff 100%);
+            width: 100%; padding: 15px; 
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
             color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer;
             transition: transform 0.1s, box-shadow 0.3s;
         }
         button.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4); }
 
-        #problem-desc-container { background-color: var(--desc-bg); border: 1px solid var(--desc-border); border-radius: 8px; padding: 20px; margin-bottom: 25px; display: none; }
+        #problem-desc-container { 
+            background-color: var(--desc-bg); 
+            border: 1px solid var(--desc-border); 
+            border-radius: 8px; padding: 20px; margin-bottom: 25px; 
+            display: none; 
+        }
         
-        .lang-switch { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #ffe58f; padding-bottom: 10px; }
-        .lang-btn { padding: 6px 18px; border: 1px solid #ccc; background: #fff; border-radius: 20px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+        .lang-switch { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--desc-border); padding-bottom: 10px; }
+        .lang-btn { 
+            padding: 6px 18px; border: 1px solid var(--border-color); 
+            background: var(--input-bg); color: var(--text-color);
+            border-radius: 20px; cursor: pointer; font-size: 1rem; transition: all 0.2s; 
+        }
         .lang-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        .lang-btn.disabled { background: #e0e0e0; color: #999; border-color: #e0e0e0; cursor: not-allowed; pointer-events: none; }
+        .lang-btn.disabled { opacity: 0.5; cursor: not-allowed; }
 
-        #problem-desc-content { white-space: pre-wrap; line-height: 1.6; color: #444; font-size: 1.05rem; }
+        #problem-desc-content { white-space: pre-wrap; line-height: 1.6; color: var(--desc-text); font-size: 1.05rem; }
 
-        .result-box {
-            margin-top: 30px; background: var(--term-bg); color: var(--term-text);
-            padding: 20px; border-radius: 8px; font-family: 'Consolas', 'Monaco', monospace;
-            white-space: pre-wrap; line-height: 1.5; border-left: 5px solid var(--primary-color);
-            position: relative;
-        }
-        .result-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px; }
-        .btn-clear { background: transparent; border: 1px solid var(--danger-color); color: var(--danger-color); border-radius: 4px; padding: 4px 12px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
-        .btn-clear:hover { background: var(--danger-color); color: white; }
-        
-        .problem-badge {
-            font-size: 0.9rem; color: #ccc; margin-left: 10px; font-weight: normal;
-        }
+        /* --- 請替換掉原本的 .result-box 相關 CSS --- */
 
-        .footer { text-align: center; margin-top: 30px; color: #888; font-size: 0.9rem; }
+.result-box {
+    margin-top: 25px; 
+    background: #1e1e1e; /* 純黑背景，更像 Terminal */
+    color: #e0e0e0;      /* 淺灰文字，比全亮綠色耐看 */
+    border-radius: 8px; 
+    border: 1px solid #333;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;   /* 字體稍微縮小 */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    overflow: hidden;    /* 讓圓角生效 */
+}
+
+/* 頂部標題列：模仿視窗標題 */
+.result-header { 
+    background: #2d2d2d;
+    padding: 8px 15px;
+    border-bottom: 1px solid #444;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.result-title {
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 內容區域：緊湊排版 */
+/* 修改 app.py 裡的 CSS */
+.result-content {
+    padding: 15px;
+    line-height: 1.5;      
+    max-height: 400px;     
+    overflow-y: auto;      
+    font-family: 'Consolas', 'Monaco', monospace; /* 確保對齊 */
+    white-space: normal;   /* ★ 關鍵：改回 normal，去除 HTML 原始碼造成的空白 */
+}
+
+/* 針對「通過」與「失敗」的文字做特殊色 (這需要配合 Python 稍微改一點，或直接依賴 Emoji) */
+/* 這裡主要透過縮減 padding 來減少空白 */
+
+.btn-clear { 
+    background: #444; 
+    border: none; 
+    color: #fff; 
+    border-radius: 4px; 
+    padding: 4px 10px; 
+    font-size: 0.8rem; 
+    cursor: pointer; 
+    transition: background 0.2s;
+}
+.btn-clear:hover { background: #d32f2f; }
+
+.problem-badge {
+    background: #444;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+        .footer { text-align: center; margin-top: 30px; color: var(--text-secondary); font-size: 0.9rem; }
     </style>
 </head>
 <body>
+    
+    <div class="info-bar">
+        <div class="info-group">
+            <span title="現在時間">📅 <span id="clock">00:00:00</span></span>
+            <span style="color: var(--border-color);">|</span>
+            <span title="您已在此頁面專注了多久">⏱️ Coding: <span id="session-timer">00:00:00</span></span>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式">
+            <span id="theme-icon">🌙</span>
+        </button>
+    </div>
+
     <div class="container">
         <h1>🌊 Seawaves Online Judge System 🌊</h1>
         <form action="/" method="post" enctype="multipart/form-data">
             
             <div class="form-group">
                 <label for="username">👤 使用者名稱 (Name / ID)</label>
-                <input type="text" name="username" id="username" placeholder="請輸入ID以方便建立資料夾 (e.g. Jiaho)" required value="{{ username_val }}">
+                <input type="text" name="username" id="username" placeholder="請輸入姓名或學號 (e.g. Jiaho)" required value="{{ username_val }}">
             </div>
 
             <div class="form-group">
@@ -162,18 +320,34 @@ HTML_TEMPLATE = """
         {% if result %}
         <div id="result-container" class="result-box">
             <div class="result-header">
-                <span>
-                    📊 Result for <b>{{ username_val }}</b>: 
+                <div class="result-title">
+                    <span>📋 評測報告 (Judge Report)</span>
                     {% if selected_pid %}
-                    <span class="problem-badge">
-                        ( #{{ selected_pid }} - {{ problem_title }} )
-                    </span>
+                    <span class="problem-badge">#{{ selected_pid }} {{ problem_title }}</span>
                     {% endif %}
-                </span>
-                <button type="button" class="btn-clear" onclick="clearResult()">🗑️ 清空結果</button>
+                </div>
+                <button type="button" class="btn-clear" onclick="clearResult()">✕ Close</button>
             </div>
-            {{ result }}
+            
+            <div class="result-content">
+                <div style="color: #888; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+                    User: <span style="color: var(--primary-color);">{{ username_val }}</span> 
+                    <span style="margin: 0 10px; color: #444;">|</span>
+                    Time: <span id="report-time"></span>
+                </div>
+                
+                {{ result | safe }}
+            </div>
         </div>
+        
+        <script>
+            (function(){
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+                const reportTime = document.getElementById('report-time');
+                if(reportTime) reportTime.innerText = timeStr;
+            })();
+        </script>
         {% endif %}
 
         <div class="footer">
@@ -183,6 +357,7 @@ HTML_TEMPLATE = """
 
     <script>
         let currentProblemId = '';
+        let startTime = Date.now(); // 記錄進入頁面的時間
 
         window.onload = function() {
             const selectedPid = "{{ selected_pid }}";
@@ -191,14 +366,69 @@ HTML_TEMPLATE = """
                 select.value = selectedPid;
                 loadProblemInfo();
             }
+            
+            // 初始化時鐘
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // 初始化計時器
+            setInterval(updateSessionTimer, 1000);
+
+            // 初始化主題
+            initTheme();
         }
 
+        // --- 時鐘與計時功能 ---
+        function updateTime() {
+            const now = new Date();
+            // 格式化日期: YYYY-MM-DD
+            const dateStr = now.toISOString().split('T')[0];
+            // 格式化時間: HH:MM:SS (24小時制)
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            document.getElementById('clock').innerText = `${dateStr} ${timeStr}`;
+        }
+
+        function updateSessionTimer() {
+            const now = Date.now();
+            const diff = Math.floor((now - startTime) / 1000);
+            
+            const hours = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            const seconds = (diff % 60).toString().padStart(2, '0');
+            
+            document.getElementById('session-timer').innerText = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // --- 深色模式功能 ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-icon').innerText = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('theme-icon').innerText = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('theme-icon').innerText = '☀️';
+            }
+        }
+
+        // --- 原有功能保持不變 ---
         function clearResult() {
             const resultBox = document.getElementById('result-container');
             if (resultBox) resultBox.style.display = 'none';
         }
 
         function loadProblemInfo() {
+            // ... (保持原有的 AJAX 邏輯) ...
             const select = document.getElementById("problem_id");
             currentProblemId = select.value;
             const container = document.getElementById("problem-desc-container");
@@ -247,6 +477,7 @@ HTML_TEMPLATE = """
         }
 
         function switchLanguage(lang) {
+            // ... (保持原有的 Switch Language 邏輯) ...
             if (!currentProblemId) return;
             updateActiveButton(lang);
             const content = document.getElementById("problem-desc-content");
@@ -271,6 +502,8 @@ HTML_TEMPLATE = """
 </body>
 </html>
 """
+
+# ... (底下的 Python 路由程式碼保持不變) ...
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -305,19 +538,21 @@ def index():
         
         if file:
             # --- 關鍵修改開始：建立階層式資料夾 ---
-            # 格式: submissions/user_{Name}/prob_{ID}/{Timestamp}/
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            user_safe = "".join([c for c in username_val if c.isalnum() or c in ('-','_')]) # 簡單過濾特殊字元
+            user_safe = "".join([c for c in username_val if c.isalnum() or c in ('-','_')])
             
             save_folder = os.path.join(UPLOAD_FOLDER, f"user_{user_safe}", f"prob_{problem_id}", timestamp)
             os.makedirs(save_folder, exist_ok=True)
             
-            # 統一檔名為 main.c (方便管理)，或保留原始檔名
             filepath = os.path.join(save_folder, "main.c") 
             file.save(filepath)
             
-            # 呼叫 Judge，傳入新的路徑
-            result = run_judge(problem_id, filepath)
+            # ✅ 正確！必須在 if 裡面呼叫，這樣才抓得到 filepath
+            result = run_judge(problem_id, filepath) 
+            
+            # 去除前後空白 (剛剛建議的優化)
+            if result:
+                result = result.strip()
             # --- 關鍵修改結束 ---
     
     return render_template_string(HTML_TEMPLATE, result=result, problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title, username_val=username_val)
