@@ -1,0 +1,15 @@
+# 忽略 Python 編譯檔
+__pycache__/
+*.py[cod]
+
+# 忽略環境設定檔 (如果有)
+.env
+venv/
+
+# 忽略使用者上傳的具體檔案 (保留 submissions 資料夾本身，但不備份裡面的內容)
+submissions/*
+!submissions/.keep
+
+# 忽略 Mac 或 Windows 的系統縮圖
+.DS_Store
+Thumbs.db
