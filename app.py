@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template_string, jsonify
 import os
 import datetime  # 新增: 用於產生時間戳記
+import markdown
 from judge_core import run_judge
 
 app = Flask(__name__)
@@ -285,7 +286,7 @@ HTML_TEMPLATE = """
 
             <div class="form-group">
                 <label for="problem_id">📚 選擇題目 (Select Problem)</label>
-                <select name="problem_id" id="problem_id" onchange="loadProblemInfo()">
+                <select name="problem_id" id="problem_id" onchange="loadProblemInfo()" required>
                     <option value="" disabled selected>請選擇題目...</option>
                     {% for pid, data in problems.items() %}
                     <option value="{{ pid }}" {% if selected_pid == pid %}selected{% endif %}>
@@ -512,6 +513,23 @@ def index():
     problem_title = ""
     username_val = ""
     
+    # ✅ 修正：變數定義必須放在最前面，確保任何情況下都有值
+    readme_html = ""
+    changelog_html = ""
+    
+    # ✅ 修正：嘗試讀取 Markdown 檔案
+    try:
+        if os.path.exists("README.md"):
+            with open("README.md", "r", encoding="utf-8") as f:
+                readme_html = markdown.markdown(f.read())
+        
+        if os.path.exists("CHANGELOG.md"):
+            with open("CHANGELOG.md", "r", encoding="utf-8") as f:
+                changelog_html = markdown.markdown(f.read())
+    except Exception as e:
+        readme_html = f"<p>Error loading info: {str(e)}</p>"
+
+    # --- 以下是原本的邏輯 ---
     if request.method == 'POST':
         username_val = request.form.get('username', '').strip() # 獲取使用者名稱
         problem_id = request.form.get('problem_id')
@@ -519,17 +537,48 @@ def index():
         
         # 簡單驗證
         if not username_val:
-            return "⚠️ Error: 請輸入使用者名稱！"
+            error_msg = "<span style='color: #ff4d4f; font-weight: bold;'>⚠️ Error: 請輸入使用者名稱！</span>"
+            return render_template_string(
+                HTML_TEMPLATE, 
+                result=error_msg, 
+                problems=PROBLEMS, 
+                selected_pid=selected_pid, 
+                problem_title=problem_title, 
+                username_val=username_val,
+                readme_content=readme_html,     # 現在這裡一定有值了
+                changelog_content=changelog_html # 這裡也是
+            )
         
         if problem_id in PROBLEMS:
             problem_title = PROBLEMS[problem_id]['title']
         
-        if not problem_id: return "⚠️ Error: 請選擇一個題目！"
+        # 驗證題目 ID
+        if not problem_id:
+            error_msg = "<span style='color: #ff4d4f; font-weight: bold;'>⚠️ Error: 請選擇一個題目 (Please select a problem)！</span>"
+            return render_template_string(
+                HTML_TEMPLATE, 
+                result=error_msg, 
+                problems=PROBLEMS, 
+                selected_pid=selected_pid, 
+                problem_title=problem_title, 
+                username_val=username_val,
+                readme_content=readme_html,
+                changelog_content=changelog_html
+            )
 
         # 檢查是否可上傳
         can_submit = PROBLEMS.get(problem_id, {}).get('submit', True)
         if not can_submit:
-            return render_template_string(HTML_TEMPLATE, result="⚠️ 此題目不提供評測功能。", problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title, username_val=username_val)
+            return render_template_string(
+                HTML_TEMPLATE, 
+                result="⚠️ 此題目不提供評測功能。", 
+                problems=PROBLEMS, 
+                selected_pid=selected_pid, 
+                problem_title=problem_title, 
+                username_val=username_val,
+                readme_content=readme_html,
+                changelog_content=changelog_html
+            )
 
         if 'file' not in request.files: return 'No file part'
         file = request.files['file']
@@ -537,7 +586,7 @@ def index():
         if file.filename == '': return 'No selected file'
         
         if file:
-            # --- 關鍵修改開始：建立階層式資料夾 ---
+            # --- 建立階層式資料夾 ---
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             user_safe = "".join([c for c in username_val if c.isalnum() or c in ('-','_')])
             
@@ -547,16 +596,24 @@ def index():
             filepath = os.path.join(save_folder, "main.c") 
             file.save(filepath)
             
-            # ✅ 正確！必須在 if 裡面呼叫，這樣才抓得到 filepath
+            # 呼叫 Judge
             result = run_judge(problem_id, filepath) 
             
-            # 去除前後空白 (剛剛建議的優化)
+            # 去除前後空白
             if result:
                 result = result.strip()
-            # --- 關鍵修改結束 ---
     
-    return render_template_string(HTML_TEMPLATE, result=result, problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title, username_val=username_val)
-
+    # GET 請求或 POST 成功後的渲染
+    return render_template_string(
+        HTML_TEMPLATE, 
+        result=result, 
+        problems=PROBLEMS, 
+        selected_pid=selected_pid, 
+        problem_title=problem_title, 
+        username_val=username_val,
+        readme_content=readme_html,       # 傳遞內容
+        changelog_content=changelog_html  # 傳遞內容
+    )
 @app.route('/problem_info/<problem_id>')
 def problem_info(problem_id):
     zh_path = os.path.join(PROBLEMS_FOLDER, f"{problem_id}_zh.txt")
