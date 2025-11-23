@@ -22,11 +22,14 @@
 
 ## 🚀 如何使用 (How to Start)
 
-1.開啟瀏覽器訪問 `https://seawavesjudge.ddns.net/`
+1.開啟瀏覽器訪問 https://seawavesjudge.ddns.net/
 
 ## 📝 作者 (Author)
 
 * **Jiaho** - *Initial work & Maintenance*
 
+## 📅 更新日誌 (Changelog)
+
+詳細的更新紀錄請參閱 [CHANGELOG.md](CHANGELOG.md)
 ---
 *Powered by Seawaves Code Studio*
