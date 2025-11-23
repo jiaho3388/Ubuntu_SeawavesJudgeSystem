@@ -1,0 +1,14 @@
+Problem #09: Display Solid Square of Asterisks
+
+Description:
+Write a function that displays a solid square of asterisks whose side is specified in integer parameter side.
+For example, if side is 4, the function displays:
+
+Example Input 1:
+4
+
+Example Output 1:
+****
+****
+****
+****

@@ -1,0 +1,16 @@
+Problem #18: Array Reversal using Pointers (reverse3.c)
+
+Description:
+The reverse.c program of Chapter 8 reads 10 numbers, then writes the numbers in reverse order.
+The original program (reverse1.c and reverse2.c) stores the numbers in an array, using subscripting to access elements of the array.
+
+Write a new version, reverse3.c, that performs the following:
+1. Reads 10 numbers into an array.
+2. Writes the numbers in reverse order.
+3. Constraint: Subscripting must be replaced with pointer arithmetic.
+
+Example Input:
+Enter 10 numbers: 1 2 3 4 5 6 7 8 9 10
+
+Example Output:
+In reverse order: 10 9 8 7 6 5 4 3 2 1

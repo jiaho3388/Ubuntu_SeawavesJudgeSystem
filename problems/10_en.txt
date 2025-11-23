@@ -1,0 +1,22 @@
+Problem #10: Find the Two Largest and Two Smallest Numbers
+
+Description:
+Write a program that performs the following steps:
+1. Prompt the user to enter an integer n to define an array of length n.
+2. Prompt the user to enter n integers (separated by spaces) and store them in the array.
+3. Write a function that takes the array as a parameter and prints the "two largest" and "two smallest" items in the array, separated by spaces.
+4. If the array length is <= 4, output only the maximum and minimum values instead.
+
+Example Input 1:
+10
+-1 2 -3 4 -5 6 -7 8 9 10
+
+Example Output 1:
+10 9 -5 -7
+
+Example Input 2:
+4
+10 5 -3 -99
+
+Example Output 2:
+10 -99

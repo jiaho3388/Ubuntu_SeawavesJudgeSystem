@@ -1,0 +1,34 @@
+Problem #13: Guess the Number
+
+Description:
+Write a program that plays the game of "guess the secret number" as follows:
+
+1. First: The program asks the user to enter a number as the "secret number" (range 1 to 1000).
+2. Then: The player inputs a guess.
+   - If the guess is incorrect, the program should loop until the player guesses correctly.
+   - The program must provide the following feedback to help the player:
+     - "Too-high": The guess is greater than the secret number.
+     - "Too-low": The guess is smaller than the secret number.
+     - "x": The guess is not in the range 1 ~ 1000.
+3. When the user enters the correct number, show "Success".
+
+Note:
+1. Messages must be exactly as shown (case-sensitive): "Too-high", "Too-low", "Success", "x" (lowercase).
+2. All output messages must be followed by a newline character.
+
+Example Input:
+50
+2000
+-200
+30
+80
+60
+50
+
+Example Output:
+x
+x
+Too-low
+Too-high
+Too-high
+Success

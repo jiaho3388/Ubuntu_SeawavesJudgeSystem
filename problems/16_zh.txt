@@ -1,0 +1,90 @@
+📚 浮點數分解函數 decompose (重點整理)
+🎯 核心概念：使用指標返回多個值
+在 C 語言中，函數通常只能透過 return 語句回傳一個值。
+
+要讓函數修改呼叫者 (Caller) 傳入的多個變數，我們需要使用指標 (Pointers)。這是一種傳址呼叫 (Call by Reference) 的方式。
+
+decompose 函數就是利用這種方式來「回傳」兩個分解後的值。
+
+⚙️ 函數定義與運作方式
+1. 函數原型 (Prototypes)
+C
+
+void decompose(double x, long *int_part, double *frac_part);
+double x: 這是輸入，要被分解的浮點數。
+
+long *int_part: 這是輸出，指向儲存整數部分的 long 型變數的指標。
+
+double *frac_part: 這是輸出，指向儲存小數部分的 double 型變數的指標。
+
+回傳類型是 void，因為實際的結果是透過指標參數傳回的。
+
+2. 函數主體 (Implementation)
+C
+
+void decompose(double x, long *int_part, double *frac_part)
+{
+    // 1. 計算整數部分：
+    // 將 x 強制轉換 (cast) 成 long 類型，會自動截斷小數部分。
+    *int_part = (long) x; 
+
+    // 2. 計算小數部分：
+    // 用原始浮點數 x 減去已取出的整數部分 (*int_part)。
+    // *int_part 在這裡作為一個 long 數值參與運算。
+    *frac_part = x - *int_part;
+}
+關鍵操作： 在函數內部，使用解參考運算子 * 來存取和修改指標所指的記憶體位置。
+
+*int_part = ...: 改變了呼叫端傳入的 i 變數的值。
+
+*frac_part = ...: 改變了呼叫端傳入的 d 變數的值。
+
+🚨 翻譯註釋：關於指標變數本身的變動
+我們不能改變 point 變數本身 value (int_part 及 frac_part)，但是我們可以改變 point 變數所指的位址的內容。
+
+這句話的意思是：
+
+不能改變的： 變數 int_part (指標本身) 儲存的記憶體位址不能被改變（例如：你不能讓 int_part 轉而指向另一個變數 j 的位址）。
+
+可以改變的： 變數 *int_part (指標所指向的內容) 是可以被改變的。這正是此處的目的：透過 *int_part = (long) x; 來修改呼叫函式 main 中變數 i 的值。
+
+📄 完整程式碼翻譯與執行流程
+C
+
+#include <stdio.h>
+
+// 函數原型 (Prototype): 宣告 decompose 函數，接受一個 double 和兩個指標
+void decompose(double x, long* int_part, double* frac_part);
+
+int main(void)
+{
+    long i;              // 宣告一個 long 變數 i (用於儲存整數部分)
+    double d;            // 宣告一個 double 變數 d (用於儲存小數部分)
+    double pi = 3.14159; // 宣告要分解的浮點數
+
+    // 呼叫 decompose 函數：
+    // 傳入 pi 的值 (3.14159)
+    // 傳入 i 的位址 (&i)
+    // 傳入 d 的位址 (&d)
+    decompose(pi, &i, &d);
+
+    // 輸出結果：
+    // 變數 i 和 d 的值已經在 decompose 函數內部被修改了。
+    printf("the integer part: %ld\n", i);  // 輸出 3。注意：long 類型建議使用 %ld
+    printf("the fractional part: %f\n", d); // 輸出 0.141590
+
+    return 0;
+}
+
+// 函數定義 (Definition)
+void decompose(double x, long* int_part, double* frac_part)
+{
+    // 將 x 的整數部分存入呼叫者傳入的 i 變數
+    *int_part = (long) x; 
+    
+    // 將 x 的小數部分存入呼叫者傳入的 d 變數
+    *frac_part = x - *int_part;
+}
+預期執行結果
+the integer part: 3
+the fractional part: 0.141590

@@ -1,0 +1,24 @@
+題目 #17: 使用指標尋找最大值與最小值
+
+描述：
+請撰寫一個程式，包含以下功能：
+
+1. max_min() 函式：
+   - 用途：找出陣列中的最大與最小元素。
+   - 函式原型 (Prototype)：
+     void max_min(int a[], int n, int *max, int *min);
+   - 運作方式：
+     當 max_min() 在陣列 b 中找到最大值時，將其賦值給 *max 以存入變數 big。
+     當 max_min() 在陣列 b 中找到最小值時，將其賦值給 *min 以存入變數 small。
+
+2. 主程式 (main)：
+   - 讀取 10 個數字存入陣列。
+   - 將陣列傳遞給 max_min() 函式 (例如：max_min(b, N, &big, &small);)。
+   - 印出結果。
+
+範例輸入:
+Enter 10 numbers: 34 82 49 102 7 94 23 11 50 31
+
+範例輸出:
+Largest: 102
+Smallest: 7

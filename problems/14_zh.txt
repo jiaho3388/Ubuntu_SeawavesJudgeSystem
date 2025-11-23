@@ -1,0 +1,82 @@
+📚 堆疊資料結構與 C 語言實現 (重點整理)
+🚀 什麼是堆疊？
+定義： 堆疊是一種能儲存多個相同類型資料項目的資料結構，類似於陣列。
+
+操作限制： 堆疊的操作是受限的，遵循 後進先出 (LIFO - Last-In, First-Out) 原則。
+
+Push (推入): 將一個項目新增到堆疊的頂端 (Stack Top)。
+
+Pop (彈出): 從堆疊的頂端將一個項目移除。
+
+限制： 禁止檢視或修改不在堆疊頂端的任何項目。
+
+💻 C 語言中的實現方式
+在 C 語言中，一種常見的堆疊實現方式是使用陣列和一個整數變數：
+
+儲存項目： 使用一個陣列 contents 來實際儲存堆疊中的資料項目。
+
+堆疊頂端標記： 使用一個單獨的整數變數 top 來標記堆疊頂端的位置。
+
+當堆疊為空時，top 的值為 0。
+
+🔸 Push (推入) 操作
+將新項目儲存到 contents 陣列中由 top 指示的位置。
+
+然後，遞增 top 的值（指向下一個可用的空位置）。
+
+🔸 Pop (彈出) 操作
+遞減 top 的值 (讓它指向目前最頂端的項目)。
+
+使用更新後的 top 值作為索引，從 contents 中取出要彈出的項目。
+
+🌐 外部變數的應用 (External Variables)
+目的： 為了讓所有堆疊操作函數（make_empty、is_empty、is_full、push、pop）都能存取堆疊的狀態。
+
+變數：
+
+top 變數：所有五個函數都需要存取。
+
+contents 陣列：push 和 pop 兩個函數需要存取。
+
+結論： 為了實現這種共享存取，contents 陣列和 top 變數被宣告為外部變數。
+
+📄 C 程式碼片段翻譯與註釋
+
+#include <stdbool.h> /* C99 only, 為了使用 bool 類型 */
+
+#define STACK_SIZE 100 // 定義堆疊的最大容量
+
+/* 外部變數 (External Variables) */
+int contents[STACK_SIZE]; // 儲存堆疊項目的陣列
+int top = 0;              // 標記堆疊頂端位置的索引，0 表示堆疊為空
+
+void make_empty(void)     // 使堆疊變空
+{
+    top = 0;              // 將 top 設為 0
+}
+
+bool is_empty(void)       // 檢查堆疊是否為空
+{
+    return top == 0;      // 若 top 為 0，則堆疊為空
+}
+
+bool is_full(void)        // 檢查堆疊是否已滿
+{
+    return top == STACK_SIZE; // 若 top 等於容量，則堆疊已滿
+}
+
+void push(int i)          // 推入 (Push) 一個整數 i
+{
+    if (is_full())        // 檢查堆疊是否已滿
+        stack_overflow(); // 堆疊溢位處理（此處未定義）
+    else
+        contents[top++] = i; // 將 i 存入 contents[top]，然後遞增 top
+}
+
+int pop(void)             // 彈出 (Pop) 堆疊最頂端的項目並回傳
+{
+    if (is_empty())       // 檢查堆疊是否為空
+        stack_underflow(); // 堆疊底層溢位處理（此處未定義）
+    else
+        return contents[--top]; // 先遞減 top，然後回傳 contents[top] 處的項目
+}

@@ -1,0 +1,52 @@
+Problem #15: Classifying a Poker Hand
+
+Description:
+Each card in the hand has a suit and a rank.
+- Suits: clubs, diamonds, hearts, spades
+- Ranks: two, three, four, five, six, seven, eight, nine, ten, jack, queen, king, ace
+- Jokers are not allowed, and aces are high.
+
+After reading a hand of five cards, the program will classify the hand using the categories below.
+If a hand falls into two or more categories, the program will choose the best one.
+
+Categories (listed from best to worst):
+- Type1: straight-flush (both a straight and a flush)
+- Type2: four-of-a-kind (four cards of the same rank)
+- Type3: full-house (a three-of-a-kind and a pair)
+- Type4: flush (five cards of the same suit)
+- Type5: straight (five cards with consecutive ranks)
+- Type6: three-of-a-kind (three cards of the same rank)
+- Type7: two-pairs
+- Type8: pair (two cards of the same rank)
+- Type9: high-card (any other hand)
+- Type10: duplicate card (input contains identical cards)
+- Type11: bad card (input format error)
+
+Input Format:
+Ranks and suits will be single letters (upper- or lower-case):
+- Ranks: 2 3 4 5 6 7 8 9 t j q k a
+- Suits: c d h s
+- Input expects Rank followed by Suit (e.g., 2s, 8c).
+
+Note:
+1. Input card codes are case-insensitive.
+2. The output string "Type" is case-sensitive (Capital T).
+3. Do NOT print a newline character at the end of the output.
+
+Example Input 1:
+2s 5s 4s 3s 6s
+
+Example Output 1:
+Type1
+
+Example Input 2:
+8c as 8c 7c ad
+
+Example Output 2:
+Type10
+
+Example Input 3:
+6s d2 9c 4h ts
+
+Example Output 3:
+Type11

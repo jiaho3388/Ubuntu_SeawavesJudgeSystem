@@ -1,0 +1,24 @@
+Problem #17: Find Max and Min using Pointers
+
+Description:
+Write a program that performs the following:
+
+1. max_min() function:
+   - Purpose: To find the largest and smallest elements in an array.
+   - Prototype:
+     void max_min(int a[], int n, int *max, int *min);
+   - Function Action:
+     When max_min() finds the largest element, it stores the value in the variable pointed to by max (assigning it to *max).
+     It stores the smallest element in the variable pointed to by min (assigning it to *min).
+
+2. Main program:
+   - Read 10 numbers into an array.
+   - Pass the array to the max_min() function (e.g., max_min(b, N, &big, &small);).
+   - Print the results.
+
+Example Input:
+Enter 10 numbers: 34 82 49 102 7 94 23 11 50 31
+
+Example Output:
+Largest: 102
+Smallest: 7

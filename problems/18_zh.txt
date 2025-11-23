@@ -1,0 +1,16 @@
+題目 #18: 使用指標反轉陣列
+
+描述：
+Chapter 8 的 reverse.c 程式會讀取 10 個數字，然後依相反順序輸出這些數字。
+原本的程式 (reverse1.c 和 reverse2.c) 將數字儲存在陣列中，並使用陣列索引 (subscripting) 來存取元素。
+
+請撰寫一個新版本 reverse3.c，功能如下：
+1. 讀取 10 個數字存入陣列。
+2. 將這些數字依相反順序輸出。
+3. 限制：必須將「陣列索引」替換為「指標運算 (pointer arithmetic)」。
+
+範例輸入:
+Enter 10 numbers: 1 2 3 4 5 6 7 8 9 10
+
+範例輸出:
+In reverse order: 10 9 8 7 6 5 4 3 2 1

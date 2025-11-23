@@ -1,0 +1,10 @@
+Problem #07: Find Maximum of Two Integers
+
+Description:
+Write a program that uses a function to take two integers as input and output the maximum value.
+
+Input:
+1 5
+
+Output:
+5

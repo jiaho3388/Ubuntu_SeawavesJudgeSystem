@@ -1,0 +1,52 @@
+題目 #15: 撲克牌手牌分類 (Classifying a Poker Hand)
+
+描述：
+每張手牌都包含花色 (suit) 和點數 (rank)。
+- 花色：梅花 (clubs), 方塊 (diamonds), 紅心 (hearts), 黑桃 (spades)
+- 點數：2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K, A
+- 不包含鬼牌 (Jokers)，且 A (Ace) 為最大。
+
+程式讀取五張牌後，需依照下列類別進行分類。
+如果一手牌同時符合兩個以上的類別，請選擇「最好」的那個類別。
+
+類別 (由好到壞排列)：
+- Type1: 同花順 (straight-flush) - 同時是順子也是同花
+- Type2: 四條 (four-of-a-kind) - 四張相同點數
+- Type3: 葫蘆 (full-house) - 三條加一對
+- Type4: 同花 (flush) - 五張同一花色
+- Type5: 順子 (straight) - 五張連續點數
+- Type6: 三條 (three-of-a-kind) - 三張相同點數
+- Type7: 兩對 (two-pairs)
+- Type8: 一對 (pair) - 兩張相同點數
+- Type9: 散牌/高牌 (high-card) - 其他情形
+- Type10: 重複的牌 (duplicate card) - 輸入中有相同的牌
+- Type11: 錯誤的牌 (bad card) - 輸入格式錯誤
+
+輸入格式說明：
+點數與花色將以單個字母 (大寫或小寫) 表示：
+- 點數 (Ranks): 2 3 4 5 6 7 8 9 t j q k a (t代表10)
+- 花色 (Suits): c d h s
+- 輸入順序為「點數」接著「花色」(例如：2s, 8c)。
+
+注意：
+1. 輸入的 card 代號大小寫皆可。
+2. 輸出的 Type 文字大小寫要完全正確 ("Type" 的 T 為大寫)。
+3. 輸出後「不可」再加換行符號。
+
+範例輸入 1:
+2s 5s 4s 3s 6s
+
+範例輸出 1:
+Type1
+
+範例輸入 2:
+8c as 8c 7c ad
+
+範例輸出 2:
+Type10
+
+範例輸入 3:
+6s d2 9c 4h ts
+
+範例輸出 3:
+Type11

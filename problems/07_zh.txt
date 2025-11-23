@@ -1,0 +1,10 @@
+題目 #07: 找出兩個整數中的最大值 (Find Maximum of Two Integers)
+
+說明：
+撰寫一個程式，利用一個函式 (function) 輸入兩個整數，並輸出其中的最大值。
+
+輸入 (Input)：
+1 5
+
+輸出 (Output)：
+5

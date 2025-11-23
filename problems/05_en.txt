@@ -1,0 +1,23 @@
+Problem #05: Anagram Checker
+
+Write a program that tests whether two words are anagrams (permutations of the same letters):
+
+==============================================
+Example Input1:
+==============================================
+Enter first word: smartest
+Enter second word: mattress
+==============================================
+Example Output1:
+==============================================
+The words are anagrams.
+
+==============================================
+Example Input2:
+==============================================
+Enter first word: dumbest
+Enter second word: stumble
+==============================================
+Example Output2:
+==============================================
+The words are not anagrams.
