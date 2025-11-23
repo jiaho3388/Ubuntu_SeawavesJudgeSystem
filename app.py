@@ -278,11 +278,6 @@ HTML_TEMPLATE = """
     <div class="container">
         <h1>🌊 Seawaves Online Judge System 🌊</h1>
         <form action="/" method="post" enctype="multipart/form-data">
-            
-            <div class="form-group">
-                <label for="username">👤 使用者名稱 (Name / ID)</label>
-                <input type="text" name="username" id="username" placeholder="請輸入姓名或學號 (e.g. Jiaho)" required value="{{ username_val }}">
-            </div>
 
             <div class="form-group">
                 <label for="problem_id">📚 選擇題目 (Select Problem)</label>
@@ -504,20 +499,31 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# ... (底下的 Python 路由程式碼保持不變) ...
+# ... (原本的 import) ...
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    result = None
+    # 1. ✅ [關鍵修正] 初始化所有變數 (避免 UnboundLocalError)
+    result = None           # 修正報錯的關鍵
     selected_pid = ""
     problem_title = ""
-    username_val = ""
-    
-    # ✅ 修正：變數定義必須放在最前面，確保任何情況下都有值
+    username_val = "Unknown"
     readme_html = ""
     changelog_html = ""
-    
-    # ✅ 修正：嘗試讀取 Markdown 檔案
+
+    # 2. 自動獲取 IP 位址 (作為使用者名稱)
+    try:
+        if request.headers.getlist("X-Forwarded-For"):
+            user_ip = request.headers.getlist("X-Forwarded-For")[0]
+        else:
+            user_ip = request.remote_addr
+        # 將 IP 的點換成底線 (e.g., 192_168_1_1)
+        if user_ip:
+            username_val = user_ip.replace('.', '_')
+    except Exception:
+        username_val = "Unknown_User"
+
+    # 3. 讀取 Markdown 檔案 (README & CHANGELOG)
     try:
         if os.path.exists("README.md"):
             with open("README.md", "r", encoding="utf-8") as f:
@@ -529,25 +535,10 @@ def index():
     except Exception as e:
         readme_html = f"<p>Error loading info: {str(e)}</p>"
 
-    # --- 以下是原本的邏輯 ---
+    # 4. 處理 POST 請求 (提交程式碼)
     if request.method == 'POST':
-        username_val = request.form.get('username', '').strip() # 獲取使用者名稱
         problem_id = request.form.get('problem_id')
         selected_pid = problem_id 
-        
-        # 簡單驗證
-        if not username_val:
-            error_msg = "<span style='color: #ff4d4f; font-weight: bold;'>⚠️ Error: 請輸入使用者名稱！</span>"
-            return render_template_string(
-                HTML_TEMPLATE, 
-                result=error_msg, 
-                problems=PROBLEMS, 
-                selected_pid=selected_pid, 
-                problem_title=problem_title, 
-                username_val=username_val,
-                readme_content=readme_html,     # 現在這裡一定有值了
-                changelog_content=changelog_html # 這裡也是
-            )
         
         if problem_id in PROBLEMS:
             problem_title = PROBLEMS[problem_id]['title']
@@ -586,11 +577,9 @@ def index():
         if file.filename == '': return 'No selected file'
         
         if file:
-            # --- 建立階層式資料夾 ---
+            # 建立資料夾 (使用 IP)
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            user_safe = "".join([c for c in username_val if c.isalnum() or c in ('-','_')])
-            
-            save_folder = os.path.join(UPLOAD_FOLDER, f"user_{user_safe}", f"prob_{problem_id}", timestamp)
+            save_folder = os.path.join(UPLOAD_FOLDER, f"user_{username_val}", f"prob_{problem_id}", timestamp)
             os.makedirs(save_folder, exist_ok=True)
             
             filepath = os.path.join(save_folder, "main.c") 
@@ -603,7 +592,7 @@ def index():
             if result:
                 result = result.strip()
     
-    # GET 請求或 POST 成功後的渲染
+    # 5. 回傳頁面
     return render_template_string(
         HTML_TEMPLATE, 
         result=result, 
@@ -611,9 +600,11 @@ def index():
         selected_pid=selected_pid, 
         problem_title=problem_title, 
         username_val=username_val,
-        readme_content=readme_html,       # 傳遞內容
-        changelog_content=changelog_html  # 傳遞內容
+        readme_content=readme_html,       
+        changelog_content=changelog_html  
     )
+
+    
 @app.route('/problem_info/<problem_id>')
 def problem_info(problem_id):
     zh_path = os.path.join(PROBLEMS_FOLDER, f"{problem_id}_zh.txt")
