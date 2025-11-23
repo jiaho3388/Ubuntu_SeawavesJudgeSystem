@@ -22,7 +22,7 @@
 
 ## 🚀 如何使用 (How to Start)
 
-1.開啟瀏覽器訪問 https://seawavesjudge.ddns.net/
+開啟瀏覽器訪問 https://seawavesjudge.ddns.net/
 
 ## 📝 作者 (Author)
 
