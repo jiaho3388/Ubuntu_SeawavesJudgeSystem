@@ -1,15 +1,19 @@
 from flask import Flask, request, render_template_string, jsonify
 import os
+import datetime  # 新增: 用於產生時間戳記
 from judge_core import run_judge
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'submissions'
-PROBLEMS_FOLDER = 'problems'
+# 設定基礎路徑
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'submissions')
+PROBLEMS_FOLDER = os.path.join(BASE_DIR, 'problems')
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(PROBLEMS_FOLDER, exist_ok=True)
 
-# 題目資料庫
+# 題目資料庫 (保持不變)
 PROBLEMS = {
     "01": {"title": "B1FF Filter", "title_zh": "B1FF 過濾器", "desc": "Translate message into B1FF-speak."},
     "02": {"title": "5x5 Array Sums", "title_zh": "5x5 陣列總和", "desc": "Read 5x5 array and print row/column sums."},
@@ -29,7 +33,7 @@ PROBLEMS = {
     "16": {"title": "Decompose Function", "title_zh": "數值分解 (無測資)", "desc": "(本題無測資)\nDecompose a double value using pointers.", "submit": False},
     "17": {"title": "Max_Min Function", "title_zh": "最大最小值函數", "desc": "Find largest and smallest in 10 numbers."},
     "18": {"title": "Reverse Array", "title_zh": "反轉陣列", "desc": "Read 10 numbers and print in reverse order."},
-    "note": {"title": "⚠️備註 (Remarks)", "title_zh": "補充說明", "desc": "【補充說明】\n以下題目也是期中考範圍 但是都在課本 無法提供測資\nChapter 11 Exercises 3-8 (page255-256)\nChapter 12 Projects 2 (page 275-276)\n\n有bug請回報IG : jiahedai  我醒啦 20251123 06:40編輯", "submit": False}
+    "note": {"title": "⚠️備註 (Remarks)", "title_zh": "補充說明", "desc": "【補充說明】\n以下題目也是期中考範圍 但是都在課本 無法提供測資\nChapter 11 Exercises 3-8 (page255-256)\nChapter 12 Projects 2 (page 275-276)\n\n有bug請回報IG : jiahedai  我醒啦 20251123 18:40編輯", "submit": False}
 }
 
 HTML_TEMPLATE = """
@@ -38,7 +42,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌊 Seawaves Online Judge</title>
+    <title>🌊 Seawaves Online Judge 🌊</title>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -72,11 +76,11 @@ HTML_TEMPLATE = """
         .form-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 1.1rem; }
         
-        select { width: 100%; padding: 14px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 18px; background-color: #fff; cursor: pointer; }
+        select, input[type="text"] { width: 100%; padding: 14px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 18px; background-color: #fff; cursor: pointer; box-sizing: border-box;}
         option { font-size: 18px; padding: 10px; }
         
         input[type="file"] { width: 100%; padding: 12px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        select:focus { border-color: var(--primary-color); outline: none; }
+        select:focus, input:focus { border-color: var(--primary-color); outline: none; }
         
         button.submit-btn {
             width: 100%; padding: 15px; background: linear-gradient(135deg, #4a90e2 0%, #007bff 100%);
@@ -113,9 +117,14 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <h1>🌊 Seawaves Online Judge System</h1>
+        <h1>🌊 Seawaves Online Judge System 🌊</h1>
         <form action="/" method="post" enctype="multipart/form-data">
             
+            <div class="form-group">
+                <label for="username">👤 使用者名稱 (Name / ID)</label>
+                <input type="text" name="username" id="username" placeholder="請輸入ID以方便建立資料夾 (e.g. Jiaho)" required value="{{ username_val }}">
+            </div>
+
             <div class="form-group">
                 <label for="problem_id">📚 選擇題目 (Select Problem)</label>
                 <select name="problem_id" id="problem_id" onchange="loadProblemInfo()">
@@ -154,10 +163,10 @@ HTML_TEMPLATE = """
         <div id="result-container" class="result-box">
             <div class="result-header">
                 <span>
-                    📊 System Output: 
+                    📊 Result for <b>{{ username_val }}</b>: 
                     {% if selected_pid %}
                     <span class="problem-badge">
-                        ( 題目 #{{ selected_pid }} - {{ problem_title }} )
+                        ( #{{ selected_pid }} - {{ problem_title }} )
                     </span>
                     {% endif %}
                 </span>
@@ -268,30 +277,50 @@ def index():
     result = None
     selected_pid = ""
     problem_title = ""
+    username_val = ""
     
     if request.method == 'POST':
-        if 'file' not in request.files: return 'No file part'
-        file = request.files['file']
+        username_val = request.form.get('username', '').strip() # 獲取使用者名稱
         problem_id = request.form.get('problem_id')
         selected_pid = problem_id 
         
-        # 取得題目名稱 (用於顯示在結果視窗)
+        # 簡單驗證
+        if not username_val:
+            return "⚠️ Error: 請輸入使用者名稱！"
+        
         if problem_id in PROBLEMS:
             problem_title = PROBLEMS[problem_id]['title']
         
         if not problem_id: return "⚠️ Error: 請選擇一個題目！"
-        
+
+        # 檢查是否可上傳
         can_submit = PROBLEMS.get(problem_id, {}).get('submit', True)
         if not can_submit:
-            return render_template_string(HTML_TEMPLATE, result="⚠️ 此題目不提供評測功能。", problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title)
+            return render_template_string(HTML_TEMPLATE, result="⚠️ 此題目不提供評測功能。", problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title, username_val=username_val)
 
+        if 'file' not in request.files: return 'No file part'
+        file = request.files['file']
+        
         if file.filename == '': return 'No selected file'
+        
         if file:
-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+            # --- 關鍵修改開始：建立階層式資料夾 ---
+            # 格式: submissions/user_{Name}/prob_{ID}/{Timestamp}/
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            user_safe = "".join([c for c in username_val if c.isalnum() or c in ('-','_')]) # 簡單過濾特殊字元
+            
+            save_folder = os.path.join(UPLOAD_FOLDER, f"user_{user_safe}", f"prob_{problem_id}", timestamp)
+            os.makedirs(save_folder, exist_ok=True)
+            
+            # 統一檔名為 main.c (方便管理)，或保留原始檔名
+            filepath = os.path.join(save_folder, "main.c") 
             file.save(filepath)
+            
+            # 呼叫 Judge，傳入新的路徑
             result = run_judge(problem_id, filepath)
+            # --- 關鍵修改結束 ---
     
-    return render_template_string(HTML_TEMPLATE, result=result, problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title)
+    return render_template_string(HTML_TEMPLATE, result=result, problems=PROBLEMS, selected_pid=selected_pid, problem_title=problem_title, username_val=username_val)
 
 @app.route('/problem_info/<problem_id>')
 def problem_info(problem_id):
@@ -304,10 +333,8 @@ def problem_info(problem_id):
     default_desc = PROBLEMS.get(problem_id, {}).get('desc', '')
     
     content = "⚠️ 暫無題目說明"
-    active_lang = 'none' # 用來告訴前端現在顯示的是哪種語言
+    active_lang = 'none'
 
-    # --- 修改後的邏輯開始 ---
-    # 優先順序 1: 英文檔案
     if has_zh:
         with open(zh_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -316,19 +343,15 @@ def problem_info(problem_id):
         with open(en_path, 'r', encoding='utf-8') as f:
             content = f.read()
         active_lang = 'en'
-    # 優先順序 2: 中文檔案 (如果沒有英文)
-    
-    # 優先順序 3: 字典裡的簡短描述 (如果都沒有檔案)
     elif default_desc:
         content = default_desc
         active_lang = 'none'
-    # --- 修改後的邏輯結束 ---
 
     return jsonify({
         "has_zh": has_zh,
         "has_en": has_en,
         "content": content,
-        "active_lang": active_lang, # 新增這個欄位傳給前端
+        "active_lang": active_lang,
         "can_submit": can_submit
     })
 
@@ -346,4 +369,4 @@ def get_description(problem_id, lang):
         return jsonify({"success": False, "error": "File not found"})
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

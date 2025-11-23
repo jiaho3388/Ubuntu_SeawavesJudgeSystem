@@ -12,11 +12,17 @@ def run_judge(problem_id, source_file):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     testcase_dir = os.path.join(base_dir, "testcases", problem_id)
     
+    # 取得 source_file 所在的資料夾 (例如: .../submissions/user_Jiaho/prob_01/20231123/)
+    submission_dir = os.path.dirname(os.path.abspath(source_file))
+
     if not os.path.exists(testcase_dir):
         return f"Error: Problem ID {problem_id} not found."
 
     # 2. 編譯 C 程式
-    executable = os.path.join(base_dir, "user_prog")
+    # ★ 修改處：將執行檔 (executable) 放在 submission 資料夾內，確保隔離
+    executable_name = "judge_exec"
+    executable = os.path.join(submission_dir, executable_name)
+    
     compile_cmd = [COMPILER, source_file, "-o", executable]
     
     compile_proc = subprocess.run(compile_cmd, capture_output=True, text=True)
@@ -80,7 +86,6 @@ def run_judge(problem_id, source_file):
                 results.append(f"✅ {input_file}: Pass")
             else:
                 all_passed = False
-                # ★ 修改處：顯示完整錯誤訊息 (不截斷)
                 show_got = user_output if user_output else "<Empty Output>"
                 
                 debug_msg = (
@@ -98,7 +103,7 @@ def run_judge(problem_id, source_file):
             all_passed = False
             results.append(f"⚠️ {input_file}: Runtime Error ({str(e)})")
 
-    # 清理執行檔
+    # 清理執行檔 (只刪除這次產生的，不會誤刪別人的)
     if os.path.exists(executable):
         os.remove(executable)
 
