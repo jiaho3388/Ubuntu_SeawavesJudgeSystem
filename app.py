@@ -327,8 +327,6 @@ HTML_TEMPLATE = """
             
             <div class="result-content">
                 <div style="color: #888; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
-                    User: <span style="color: var(--primary-color);">{{ username_val }}</span> 
-                    <span style="margin: 0 10px; color: #444;">|</span>
                     Time: <span id="report-time"></span>
                 </div>
                 
